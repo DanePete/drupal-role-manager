@@ -7,8 +7,6 @@
         "drupal/core": "^10.3 || ^11"
     },
     "extra": {
-        "drupal": {
-            "installer-name": "role_converter"
-        }
+        "installer-name": "role_converter"
     }
 }
