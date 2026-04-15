@@ -1,6 +1,6 @@
 {
     "name": "danepete/drupal-role-manager",
-    "type": "drupal-custom-module",
+    "type": "drupal-module",
     "description": "Drupal module for bulk role management (add, remove, convert) with flexible user targeting, cron-based scheduled role assignments, revision history, audit logging, and an admin UI with dry-run previews.",
     "license": "GPL-2.0-or-later",
     "require": {
