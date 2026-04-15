@@ -1,0 +1,4 @@
+manage role schedules:
+  title: 'Manage scheduled roles'
+  description: 'Create, edit, delete, and preview scheduled role assignments.'
+  restrict access: true

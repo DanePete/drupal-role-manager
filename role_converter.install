@@ -1,0 +1,141 @@
+<?php
+
+/**
+ * @file
+ * Install, update, and uninstall functions for Role Converter.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function role_converter_schema(): array {
+  $schema['role_converter_schedule_revisions'] = [
+    'description' => 'Stores revision snapshots for scheduled role config entities.',
+    'fields' => [
+      'rid' => [
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ],
+      'schedule_id' => [
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ],
+      'uid' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+      'timestamp' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+      'data' => [
+        'type' => 'text',
+        'size' => 'big',
+        'not null' => TRUE,
+        'description' => 'JSON-encoded snapshot of the config entity.',
+      ],
+      'summary' => [
+        'type' => 'varchar',
+        'length' => 512,
+        'not null' => TRUE,
+        'default' => '',
+      ],
+    ],
+    'primary key' => ['rid'],
+    'indexes' => [
+      'schedule_id' => ['schedule_id'],
+      'timestamp' => ['timestamp'],
+    ],
+  ];
+
+  return $schema;
+}
+
+/**
+ * Migrate legacy single-schedule config to scheduled_role config entity.
+ */
+function role_converter_update_10001(): string {
+  $config_factory = \Drupal::configFactory();
+  $old_config = $config_factory->get('role_converter.scheduled_role_settings');
+
+  $role_id = $old_config->get('role_id');
+  if (empty($role_id)) {
+    $config_factory->getEditable('role_converter.scheduled_role_settings')->delete();
+    \Drupal::state()->delete('role_converter.scheduled_users');
+    return 'No legacy schedule to migrate (role_id was empty).';
+  }
+
+  // Install the entity type first.
+  \Drupal::entityTypeManager()->clearCachedDefinitions();
+  $entity_type = \Drupal::entityTypeManager()->getDefinition('scheduled_role');
+  \Drupal::entityDefinitionUpdateManager()->installEntityType($entity_type);
+
+  $entity_storage = \Drupal::entityTypeManager()->getStorage('scheduled_role');
+
+  $values = [
+    'id' => 'legacy_schedule',
+    'label' => 'Legacy Schedule (migrated)',
+    'status' => (bool) $old_config->get('enabled'),
+    'target_role' => $role_id,
+    'action' => 'add',
+    'targeting_mode' => 'all',
+    'targeting_roles' => [],
+    'recurrence' => $old_config->get('recurrence') ?: 'daily',
+    'start_date' => $old_config->get('start_date') ?: NULL,
+    'end_date' => $old_config->get('end_date') ?: NULL,
+    'start_time' => $old_config->get('start_time') ?: '00:00',
+    'end_time' => $old_config->get('end_time') ?: NULL,
+    'weekly_days' => $old_config->get('weekly_days') ?: [],
+    'monthly_days' => $old_config->get('monthly_days') ?: [],
+  ];
+
+  $entity = $entity_storage->create($values);
+  $entity->save();
+
+  // Clean up old config and state.
+  $config_factory->getEditable('role_converter.scheduled_role_settings')->delete();
+  \Drupal::state()->delete('role_converter.scheduled_users');
+
+  return 'Migrated legacy schedule to config entity "legacy_schedule" and cleaned up old State data.';
+}
+
+/**
+ * Ensure the scheduled_role entity type is installed.
+ */
+function role_converter_update_10002(): string {
+  $entity_type_manager = \Drupal::entityTypeManager();
+  $entity_type_manager->clearCachedDefinitions();
+
+  $definition = $entity_type_manager->getDefinition('scheduled_role', FALSE);
+  if (!$definition) {
+    return 'Entity type scheduled_role not found.';
+  }
+
+  $update_manager = \Drupal::entityDefinitionUpdateManager();
+  if (!$update_manager->getEntityType('scheduled_role')) {
+    $update_manager->installEntityType($definition);
+    return 'Installed scheduled_role entity type.';
+  }
+
+  return 'Entity type scheduled_role already installed.';
+}
+
+/**
+ * Create the schedule revisions table.
+ */
+function role_converter_update_10003(): string {
+  $schema = role_converter_schema();
+  $table = 'role_converter_schedule_revisions';
+
+  if (\Drupal::database()->schema()->tableExists($table)) {
+    return 'Table ' . $table . ' already exists.';
+  }
+
+  \Drupal::database()->schema()->createTable($table, $schema[$table]);
+  return 'Created table ' . $table . '.';
+}

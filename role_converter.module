@@ -1,0 +1,92 @@
+<?php
+
+/**
+ * @file
+ * Primary module hooks for Role Converter module.
+ */
+
+use Drupal\role_converter\Entity\ScheduledRole;
+
+/**
+ * Implements hook_cron().
+ */
+function role_converter_cron(): void {
+  \Drupal::service('role_converter.scheduled_role')->processAll();
+}
+
+/**
+ * Implements hook_config_readonly_whitelist_patterns().
+ *
+ * Allows scheduled role config entities to be edited through the admin UI
+ * even when config_readonly is enabled (e.g. on Pantheon).
+ */
+function role_converter_config_readonly_whitelist_patterns(): array {
+  return [
+    'role_converter.schedule.*',
+    'user.role.*',
+  ];
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_presave() for scheduled_role.
+ *
+ * Captures a snapshot of the previous entity state before every save so
+ * that users can view history and revert to earlier versions.
+ */
+function role_converter_scheduled_role_presave(ScheduledRole $entity): void {
+  if ($entity->isNew()) {
+    return;
+  }
+
+  $original = \Drupal::entityTypeManager()
+    ->getStorage('scheduled_role')
+    ->load($entity->id());
+  if (!$original) {
+    return;
+  }
+
+  $export_keys = [
+    'id', 'label', 'status', 'target_role', 'action',
+    'targeting_mode', 'targeting_roles', 'targeting_users',
+    'recurrence', 'start_date', 'end_date', 'start_time', 'end_time',
+    'weekly_days', 'monthly_days',
+  ];
+
+  $snapshot = [];
+  foreach ($export_keys as $key) {
+    $snapshot[$key] = $original->get($key);
+  }
+
+  $changes = _role_converter_diff_summary($snapshot, $entity, $export_keys);
+
+  \Drupal::database()->insert('role_converter_schedule_revisions')
+    ->fields([
+      'schedule_id' => $entity->id(),
+      'uid' => (int) \Drupal::currentUser()->id(),
+      'timestamp' => \Drupal::time()->getRequestTime(),
+      'data' => json_encode($snapshot),
+      'summary' => $changes ?: 'Updated',
+    ])
+    ->execute();
+}
+
+/**
+ * Builds a human-readable summary of what changed between two states.
+ */
+function _role_converter_diff_summary(array $old, ScheduledRole $new, array $keys): string {
+  $changed = [];
+  foreach ($keys as $key) {
+    if ($key === 'id') {
+      continue;
+    }
+    $old_val = $old[$key] ?? NULL;
+    $new_val = $new->get($key);
+    if ($old_val != $new_val) {
+      $changed[] = str_replace('_', ' ', $key);
+    }
+  }
+  if (empty($changed)) {
+    return 'No changes detected';
+  }
+  return 'Changed: ' . implode(', ', $changed);
+}

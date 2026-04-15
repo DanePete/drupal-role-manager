@@ -1,0 +1,46 @@
+role_converter.form:
+  path: '/admin/people/role-manager'
+  defaults:
+    _form: '\Drupal\role_converter\Form\RoleConverterForm'
+    _title: 'Role Manager'
+  requirements:
+    _permission: 'administer users'
+
+role_converter.audit_log:
+  path: '/admin/people/role-manager/log'
+  defaults:
+    _controller: '\Drupal\role_converter\Controller\AuditLogController::page'
+    _title: 'Role Manager Audit Log'
+  requirements:
+    _permission: 'manage role schedules'
+
+role_converter.schedule_preview:
+  path: '/admin/people/scheduled-roles/{scheduled_role}/preview'
+  defaults:
+    _controller: '\Drupal\role_converter\Controller\SchedulePreviewController::preview'
+    _title: 'Schedule Dry Run'
+  requirements:
+    _permission: 'manage role schedules'
+
+role_converter.schedule_clone:
+  path: '/admin/people/scheduled-roles/{scheduled_role}/clone'
+  defaults:
+    _controller: '\Drupal\role_converter\Controller\ScheduleCloneController::clone'
+  requirements:
+    _permission: 'manage role schedules'
+
+role_converter.schedule_history:
+  path: '/admin/people/scheduled-roles/{scheduled_role}/history'
+  defaults:
+    _controller: '\Drupal\role_converter\Controller\ScheduleHistoryController::history'
+    _title_callback: '\Drupal\role_converter\Controller\ScheduleHistoryController::historyTitle'
+  requirements:
+    _permission: 'manage role schedules'
+
+role_converter.schedule_revert:
+  path: '/admin/people/scheduled-roles/{scheduled_role}/revert/{rid}'
+  defaults:
+    _controller: '\Drupal\role_converter\Controller\ScheduleHistoryController::revert'
+  requirements:
+    _permission: 'manage role schedules'
+    rid: '\d+'

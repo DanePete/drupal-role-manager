@@ -1,0 +1,20 @@
+role_converter.form:
+  title: 'Role Manager'
+  description: 'Add, remove, or convert roles for users in bulk.'
+  route_name: role_converter.form
+  parent: entity.user.collection
+  weight: 10
+
+entity.scheduled_role.collection:
+  title: 'Scheduled Roles'
+  description: 'Manage scheduled role assignments that run automatically on cron.'
+  route_name: entity.scheduled_role.collection
+  parent: entity.user.collection
+  weight: 11
+
+role_converter.audit_log:
+  title: 'Audit Log'
+  description: 'View history of role operations.'
+  route_name: role_converter.audit_log
+  parent: entity.user.collection
+  weight: 12

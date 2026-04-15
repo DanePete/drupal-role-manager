@@ -1,0 +1,5 @@
+name: 'Role Converter'
+type: module
+description: 'Bulk role management (add, remove, convert) with flexible user targeting and cron-based scheduled role assignments.'
+package: Custom
+core_version_requirement: ^10 || ^11

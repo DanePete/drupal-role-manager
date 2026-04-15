@@ -1,0 +1,5 @@
+entity.scheduled_role.add_form:
+  route_name: entity.scheduled_role.add_form
+  title: 'Add schedule'
+  appears_on:
+    - entity.scheduled_role.collection

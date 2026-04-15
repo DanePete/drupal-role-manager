@@ -1,0 +1,65 @@
+role_converter.schedule.*:
+  type: config_entity
+  label: 'Scheduled Role'
+  mapping:
+    id:
+      type: string
+      label: 'Machine name'
+    label:
+      type: label
+      label: 'Label'
+    status:
+      type: boolean
+      label: 'Enabled'
+    target_role:
+      type: string
+      label: 'Target role ID'
+    action:
+      type: string
+      label: 'Action (add or remove)'
+    targeting_mode:
+      type: string
+      label: 'Targeting mode'
+    targeting_roles:
+      type: sequence
+      label: 'Targeting role IDs'
+      sequence:
+        type: string
+        label: 'Role ID'
+    targeting_users:
+      type: sequence
+      label: 'Targeting user IDs'
+      sequence:
+        type: integer
+        label: 'User ID'
+    recurrence:
+      type: string
+      label: 'Recurrence type'
+    start_date:
+      type: string
+      label: 'Start date'
+      nullable: true
+    end_date:
+      type: string
+      label: 'End date'
+      nullable: true
+    start_time:
+      type: string
+      label: 'Start time'
+      nullable: true
+    end_time:
+      type: string
+      label: 'End time'
+      nullable: true
+    weekly_days:
+      type: sequence
+      label: 'Weekly days'
+      sequence:
+        type: integer
+        label: 'Day of week'
+    monthly_days:
+      type: sequence
+      label: 'Monthly days'
+      sequence:
+        type: integer
+        label: 'Day of month'

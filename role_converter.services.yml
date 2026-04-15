@@ -1,0 +1,4 @@
+services:
+  role_converter.scheduled_role:
+    class: Drupal\role_converter\Service\ScheduledRoleService
+    arguments: ['@entity_type.manager']
