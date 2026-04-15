@@ -45,59 +45,33 @@ class RoleConverterForm extends FormBase {
       '#attributes' => ['class' => ['button']],
     ];
 
-    $form['tab_bar'] = [
+    $form['tabs'] = [
+      '#type' => 'vertical_tabs',
+      '#default_tab' => 'edit-config-tab',
       '#weight' => -90,
-      '#markup' => '<div class="rc-tabs">'
-        . '<button type="button" class="rc-tab rc-tab--active" data-rc-tab="rc-pane-rm-config">' . $this->t('Role Manager') . '</button>'
-        . '<button type="button" class="rc-tab" data-rc-tab="rc-pane-rm-guide">' . $this->t('Help & Guide') . '</button>'
-        . '</div>',
     ];
 
-    $form['guide_pane'] = [
-      '#type' => 'container',
-      '#attributes' => ['id' => 'rc-pane-rm-guide', 'class' => ['rc-pane'], 'style' => 'display:none;'],
-      '#weight' => -89,
+    $form['config_tab'] = [
+      '#type' => 'details',
+      '#title' => $this->t('Role Manager'),
+      '#group' => 'tabs',
+      '#weight' => 0,
     ];
-    $form['guide_pane']['content'] = [
+
+    $form['guide_tab'] = [
+      '#type' => 'details',
+      '#title' => $this->t('Help & Guide'),
+      '#group' => 'tabs',
+      '#weight' => 10,
+    ];
+    $form['guide_tab']['content'] = [
       '#markup' => $this->buildGuideContent(),
-    ];
-
-    $form['#attached']['html_head'][] = [
-      [
-        '#tag' => 'style',
-        '#value' => '
-.rc-tabs { display:flex; gap:0; border-bottom:2px solid #0074bd; margin-bottom:1.5em; }
-.rc-tab { padding:10px 24px; border:1px solid #ccc; border-bottom:none; background:#f5f5f5; cursor:pointer; font-size:14px; font-weight:600; color:#333; border-radius:4px 4px 0 0; margin-right:2px; }
-.rc-tab:hover { background:#e8e8e8; }
-.rc-tab.rc-tab--active { background:#fff; border-color:#0074bd; border-bottom:2px solid #fff; margin-bottom:-2px; color:#0074bd; }
-.rc-pane { min-height:200px; }
-',
-      ],
-      'role_converter_tab_styles',
-    ];
-    $form['#attached']['html_head'][] = [
-      [
-        '#tag' => 'script',
-        '#value' => '
-document.addEventListener("click", function(e) {
-  var tab = e.target.closest(".rc-tab");
-  if (!tab) return;
-  var paneId = tab.getAttribute("data-rc-tab");
-  tab.closest(".rc-tabs").querySelectorAll(".rc-tab").forEach(function(t) { t.classList.remove("rc-tab--active"); });
-  tab.classList.add("rc-tab--active");
-  document.querySelectorAll(".rc-pane").forEach(function(p) { p.style.display = "none"; });
-  var target = document.getElementById(paneId);
-  if (target) target.style.display = "";
-});
-',
-      ],
-      'role_converter_tab_script',
     ];
 
     $roles = $this->getRoleOptions();
 
     if (empty($roles)) {
-      $form['message'] = [
+      $form['config_tab']['message'] = [
         '#markup' => '<p>' . $this->t('No roles available.') . '</p>',
       ];
       return $form;
@@ -106,7 +80,7 @@ document.addEventListener("click", function(e) {
     $form['operation'] = [
       '#type' => 'radios',
       '#title' => $this->t('Operation'),
-      '#prefix' => '<div id="rc-pane-rm-config" class="rc-pane">',
+      '#group' => 'config_tab',
       '#options' => [
         'add' => $this->t('Add role — grant a role to targeted users (keeps existing roles)'),
         'remove' => $this->t('Remove role — revoke a role from targeted users'),
@@ -123,6 +97,7 @@ document.addEventListener("click", function(e) {
       '#options' => $roles,
       '#required' => TRUE,
       '#empty_option' => $this->t('- Select role -'),
+      '#group' => 'config_tab',
       '#prefix' => '<div id="target-role-wrapper">',
       '#suffix' => '</div>',
     ];
@@ -131,6 +106,7 @@ document.addEventListener("click", function(e) {
       '#type' => 'details',
       '#title' => $this->t('Create a new role'),
       '#open' => FALSE,
+      '#group' => 'config_tab',
     ];
     $form['quick_add_role']['note'] = [
       '#markup' => '<p class="description">' . $this->t('This creates a simple role for use with the Role Manager or Scheduled Roles. The new role will have <strong>no permissions</strong> by default. To add a role with specific permissions, please contact <strong>August Ash</strong>.') . '</p>',
@@ -154,6 +130,7 @@ document.addEventListener("click", function(e) {
       '#title' => $this->t('Source roles to remove'),
       '#description' => $this->t('Select one or more roles to remove during conversion.'),
       '#options' => $roles,
+      '#group' => 'config_tab',
       '#states' => [
         'visible' => [
           ':input[name="operation"]' => ['value' => 'convert'],
@@ -167,6 +144,7 @@ document.addEventListener("click", function(e) {
     $form['targeting'] = [
       '#type' => 'radios',
       '#title' => $this->t('Select users'),
+      '#group' => 'config_tab',
       '#options' => [
         'by_role' => $this->t('By role — all users with specific role(s)'),
         'by_domain' => $this->t('By email domain — all users with a specific email domain'),
@@ -182,6 +160,7 @@ document.addEventListener("click", function(e) {
       '#title' => $this->t('Users with these roles'),
       '#description' => $this->t('Target all users who have at least one of the selected roles.'),
       '#options' => $roles,
+      '#group' => 'config_tab',
       '#states' => [
         'visible' => [
           ':input[name="targeting"]' => ['value' => 'by_role'],
@@ -195,6 +174,7 @@ document.addEventListener("click", function(e) {
       '#description' => $this->t('Target all users whose email matches this domain.'),
       '#options' => $this->getEmailDomains(),
       '#empty_option' => $this->t('- Select domain -'),
+      '#group' => 'config_tab',
       '#states' => [
         'visible' => [
           ':input[name="targeting"]' => ['value' => 'by_domain'],
@@ -206,6 +186,7 @@ document.addEventListener("click", function(e) {
       '#type' => 'select',
       '#title' => $this->t('User status'),
       '#description' => $this->t('Limit to active or blocked users, or include both.'),
+      '#group' => 'config_tab',
       '#options' => [
         '' => $this->t('Active & Blocked'),
         '1' => $this->t('Active only'),
@@ -219,6 +200,7 @@ document.addEventListener("click", function(e) {
       '#title' => $this->t('Users'),
       '#description' => $this->t('Type usernames to select individual users. Separate multiple with commas.'),
       '#target_type' => 'user',
+      '#group' => 'config_tab',
       '#selection_settings' => [
         'include_anonymous' => FALSE,
       ],
@@ -268,7 +250,6 @@ document.addEventListener("click", function(e) {
         '#value' => $this->t('Back'),
         '#submit' => ['::backSubmit'],
         '#limit_validation_errors' => [],
-        '#suffix' => '</div>',
       ];
 
       return $form;
@@ -276,7 +257,6 @@ document.addEventListener("click", function(e) {
 
     $form['actions'] = [
       '#type' => 'actions',
-      '#suffix' => '</div>',
     ];
     $form['actions']['preview'] = [
       '#type' => 'submit',

@@ -61,70 +61,40 @@ class ScheduledRoleForm extends EntityForm {
       ];
     }
 
-    $form['tab_bar'] = [
+    $form['tabs'] = [
+      '#type' => 'vertical_tabs',
+      '#default_tab' => 'edit-config-tab',
       '#weight' => -80,
-      '#markup' => '<div class="rc-tabs">'
-        . '<button type="button" class="rc-tab rc-tab--active" data-rc-tab="rc-pane-config">' . $this->t('Schedule Configuration') . '</button>'
-        . '<button type="button" class="rc-tab" data-rc-tab="rc-pane-guide">' . $this->t('Help & Guide') . '</button>'
-        . '</div>',
     ];
 
-    $form['guide_pane'] = [
-      '#type' => 'container',
-      '#attributes' => ['id' => 'rc-pane-guide', 'class' => ['rc-pane'], 'style' => 'display:none;'],
-      '#weight' => -79,
+    $form['config_tab'] = [
+      '#type' => 'details',
+      '#title' => $this->t('Schedule Configuration'),
+      '#group' => 'tabs',
+      '#weight' => 0,
     ];
-    $form['guide_pane']['content'] = [
+
+    $form['guide_tab'] = [
+      '#type' => 'details',
+      '#title' => $this->t('Help & Guide'),
+      '#group' => 'tabs',
+      '#weight' => 10,
+    ];
+    $form['guide_tab']['content'] = [
       '#markup' => $this->buildGuideContent(),
-    ];
-
-    $form['#attached']['html_head'][] = [
-      [
-        '#tag' => 'style',
-        '#value' => '
-.rc-tabs { display:flex; gap:0; border-bottom:2px solid #0074bd; margin-bottom:1.5em; }
-.rc-tab { padding:10px 24px; border:1px solid #ccc; border-bottom:none; background:#f5f5f5; cursor:pointer; font-size:14px; font-weight:600; color:#333; border-radius:4px 4px 0 0; margin-right:2px; }
-.rc-tab:hover { background:#e8e8e8; }
-.rc-tab.rc-tab--active { background:#fff; border-color:#0074bd; border-bottom:2px solid #fff; margin-bottom:-2px; color:#0074bd; }
-.rc-pane { min-height:200px; }
-',
-      ],
-      'role_converter_tab_styles',
-    ];
-    $form['#attached']['html_head'][] = [
-      [
-        '#tag' => 'script',
-        '#value' => '
-document.addEventListener("click", function(e) {
-  var tab = e.target.closest(".rc-tab");
-  if (!tab) return;
-  var paneId = tab.getAttribute("data-rc-tab");
-  tab.closest(".rc-tabs").querySelectorAll(".rc-tab").forEach(function(t) { t.classList.remove("rc-tab--active"); });
-  tab.classList.add("rc-tab--active");
-  document.querySelectorAll(".rc-pane").forEach(function(p) { p.style.display = "none"; });
-  var target = document.getElementById(paneId);
-  if (target) target.style.display = "";
-});
-',
-      ],
-      'role_converter_tab_script',
     ];
 
     $roles = $this->getRoleOptions();
 
-    $config_pane_open = '<div id="rc-pane-config" class="rc-pane">';
-
     if (!$entity->isNew() && $entity->status()) {
-      $form['status_section'] = [
+      $form['config_tab']['status_section'] = [
         '#type' => 'fieldset',
         '#title' => $this->t('Current Status'),
         '#weight' => -10,
-        '#prefix' => $config_pane_open,
       ];
-      $form['status_section']['display'] = [
+      $form['config_tab']['status_section']['display'] = [
         '#markup' => $this->buildStatusDisplay($entity),
       ];
-      $config_pane_open = '';
     }
 
     $form['label'] = [
@@ -133,10 +103,8 @@ document.addEventListener("click", function(e) {
       '#maxlength' => 255,
       '#default_value' => $entity->label(),
       '#required' => TRUE,
+      '#group' => 'config_tab',
     ];
-    if ($config_pane_open !== '') {
-      $form['label']['#prefix'] = $config_pane_open;
-    }
 
     $form['id'] = [
       '#type' => 'machine_name',
@@ -145,12 +113,14 @@ document.addEventListener("click", function(e) {
         'exists' => '\Drupal\role_converter\Entity\ScheduledRole::load',
       ],
       '#disabled' => !$entity->isNew(),
+      '#group' => 'config_tab',
     ];
 
     $form['status'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Enabled'),
       '#default_value' => $entity->status(),
+      '#group' => 'config_tab',
     ];
 
     $form['target_role'] = [
@@ -161,12 +131,14 @@ document.addEventListener("click", function(e) {
       '#default_value' => $entity->getTargetRole(),
       '#required' => TRUE,
       '#empty_option' => $this->t('- Select role -'),
+      '#group' => 'config_tab',
     ];
 
     $form['quick_add_role'] = [
       '#type' => 'details',
       '#title' => $this->t('Create a new role'),
       '#open' => FALSE,
+      '#group' => 'config_tab',
     ];
     $form['quick_add_role']['note'] = [
       '#markup' => '<p class="description">' . $this->t('This creates a simple role for use with Scheduled Roles. The new role will have <strong>no permissions</strong> by default. To add a role with specific permissions, please contact <strong>August Ash</strong>.') . '</p>',
@@ -194,12 +166,13 @@ document.addEventListener("click", function(e) {
       ],
       '#default_value' => $entity->getAction() ?: 'add',
       '#required' => TRUE,
+      '#group' => 'config_tab',
     ];
 
-    // --- User Targeting ---
     $form['targeting'] = [
       '#type' => 'fieldset',
       '#title' => $this->t('User Targeting'),
+      '#group' => 'config_tab',
     ];
 
     $form['targeting']['targeting_mode'] = [
@@ -503,11 +476,10 @@ document.addEventListener("click", function(e) {
     $form['targeting']['user_browser']['#prefix'] = '<div id="full-user-browser-wrapper">';
     $form['targeting']['user_browser']['#suffix'] = '</div>';
 
-    // --- Schedule ---
     $form['schedule'] = [
       '#type' => 'fieldset',
       '#title' => $this->t('Schedule'),
-      '#suffix' => '</div>',
+      '#group' => 'config_tab',
     ];
 
     $form['schedule']['recurrence'] = [

@@ -33,11 +33,28 @@ class ScheduledRoleService {
   }
 
   /**
+   * Roles that must never be added/removed by the scheduler.
+   */
+  private const PROTECTED_ROLES = ['anonymous', 'authenticated'];
+
+  /**
    * Processes a single schedule entity.
    */
   public function processSchedule(ScheduledRole $schedule, DrupalDateTime $now): void {
     $target_role = $schedule->getTargetRole();
     if (empty($target_role)) {
+      return;
+    }
+
+    if (in_array($target_role, self::PROTECTED_ROLES, TRUE)) {
+      \Drupal::logger('role_converter')->error('Schedule "@label" targets protected system role "@role" — skipping. Disable or delete this schedule.', [
+        '@label' => $schedule->label(),
+        '@role' => $target_role,
+      ]);
+      return;
+    }
+
+    if ($this->isScheduleExpired($schedule, $now)) {
       return;
     }
 
@@ -131,6 +148,20 @@ class ScheduledRoleService {
       'monthly' => in_array((int) $now->format('j'), $schedule->getMonthlyDays()) && $in_time_window,
       default => FALSE,
     };
+  }
+
+  /**
+   * Whether the schedule's end date is entirely in the past.
+   *
+   * Expired schedules are skipped completely — no forward or reverse action.
+   */
+  public function isScheduleExpired(ScheduledRole $schedule, DrupalDateTime $now): bool {
+    $end_date = $schedule->getEndDate();
+    if (!$end_date) {
+      return FALSE;
+    }
+    $end_obj = new DrupalDateTime($end_date . ' 23:59:59');
+    return $now->getTimestamp() > $end_obj->getTimestamp();
   }
 
   private function isInTimeWindow(string $current, string $start, ?string $end): bool {
