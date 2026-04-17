@@ -141,7 +141,7 @@ class ScheduledRoleForm extends EntityForm {
       '#group' => 'config_tab',
     ];
     $form['quick_add_role']['note'] = [
-      '#markup' => '<p class="description">' . $this->t('This creates a simple role for use with Scheduled Roles. The new role will have <strong>no permissions</strong> by default. To add a role with specific permissions, please contact <strong>August Ash</strong>.') . '</p>',
+      '#markup' => '<p class="description">' . $this->t('This creates a simple role for use with Scheduled Roles. The new role has the <strong>same permissions as an authenticated user</strong> — it is simply used to turn specific users on and off.') . '</p>',
     ];
     $form['quick_add_role']['new_role_name'] = [
       '#type' => 'textfield',
@@ -633,7 +633,7 @@ class ScheduledRoleForm extends EntityForm {
     ]);
     $role->save();
 
-    $this->messenger()->addStatus($this->t('Role "@name" created. It has no permissions — contact August Ash to configure permissions.', ['@name' => $name]));
+    $this->messenger()->addStatus($this->t('Role "@name" created. It has the same permissions as an authenticated user and is used to turn specific users on and off.', ['@name' => $name]));
     \Drupal::logger('role_converter')->info('Quick role created: "@name" (@id) by @admin.', [
       '@name' => $name,
       '@id' => $machine_name,
@@ -976,7 +976,7 @@ class ScheduledRoleForm extends EntityForm {
     . '<p>' . $this->t('Choose a descriptive name so you can find it later. Example: "Weekday Office Access" or "Monthly Report Role".') . '</p></div>'
 
     . '<div class="rc-card"><h4>' . $this->t('Step 2: Pick a role') . '</h4>'
-    . '<p>' . $this->t('Select which role to give or take away. If you need a new role, expand the "Create a new role" section below the dropdown. <strong>Note:</strong> new roles created here have no special permissions — contact <strong>August Ash</strong> to set up roles with specific access.') . '</p></div>'
+    . '<p>' . $this->t('Select which role to give or take away. If you need a new role, expand the "Create a new role" section below the dropdown. <strong>Note:</strong> roles created here have the same permissions as an authenticated user — they are simply used to turn specific users on and off.') . '</p></div>'
 
     . '<div class="rc-card"><h4>' . $this->t('Step 3: Choose an action') . '</h4>'
     . '<table>'

@@ -109,7 +109,7 @@ class RoleConverterForm extends FormBase {
       '#group' => 'config_tab',
     ];
     $form['quick_add_role']['note'] = [
-      '#markup' => '<p class="description">' . $this->t('This creates a simple role for use with the Role Manager or Scheduled Roles. The new role will have <strong>no permissions</strong> by default. To add a role with specific permissions, please contact <strong>August Ash</strong>.') . '</p>',
+      '#markup' => '<p class="description">' . $this->t('This creates a simple role for use with the Role Manager or Scheduled Roles. The new role has the <strong>same permissions as an authenticated user</strong> — it is simply used to turn specific users on and off.') . '</p>',
     ];
     $form['quick_add_role']['new_role_name'] = [
       '#type' => 'textfield',
@@ -485,7 +485,7 @@ class RoleConverterForm extends FormBase {
     ]);
     $role->save();
 
-    $this->messenger()->addStatus($this->t('Role "@name" created. It has no permissions — contact August Ash to configure permissions.', ['@name' => $name]));
+    $this->messenger()->addStatus($this->t('Role "@name" created. It has the same permissions as an authenticated user and is used to turn specific users on and off.', ['@name' => $name]));
     \Drupal::logger('role_converter')->info('Quick role created: "@name" (@id) by @admin.', [
       '@name' => $name,
       '@id' => $machine_name,
@@ -657,7 +657,7 @@ class RoleConverterForm extends FormBase {
     . '<p>' . $this->t('Every change is recorded in the Audit Log — you can always see what was done, when, and by whom. Find it in the navigation buttons at the top of the page.') . '</p></div>'
 
     . '<div class="rc-card"><h4>&#128260; ' . $this->t('Creating New Roles') . '</h4>'
-    . '<p>' . $this->t('You can create a simple new role using the "Create a new role" section below the role dropdown. <strong>Note:</strong> roles created here have no special permissions by default. To set up a role with specific access permissions, please contact <strong>August Ash</strong>.') . '</p></div>'
+    . '<p>' . $this->t('You can create a simple new role using the "Create a new role" section below the role dropdown. <strong>Note:</strong> roles created here have the same permissions as an authenticated user — they are simply used to turn specific users on and off.') . '</p></div>'
 
     . '<div class="rc-highlight" style="margin-top: 1.5em;">'
     . '<strong>' . $this->t('Need recurring changes?') . '</strong> '
